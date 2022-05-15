@@ -4,6 +4,7 @@
 #include <deque>
 #include <map>
 
+
 class CombinationTrieNode{
 private:
     std::map<int, CombinationTrieNode> children;
@@ -16,6 +17,7 @@ public:
 
     void insertCombination_(std::deque<int>& comb, int index, int depth, std::list<int> path_);
     std::list<int> search(std::deque<int>& pat, std::vector<std::vector<float>>& features_);
+    void display(int depth);
 };
 
 using Node = CombinationTrieNode;
@@ -36,5 +38,5 @@ public:
     }
     ~CombinationTrie() {};
     void search(std::deque<int>& pat, std::vector<std::vector<float>>& features_);
-    
+    void display();
 };

@@ -108,36 +108,81 @@ void CombinationTrie::search(std::deque<int>& pat, std::vector<std::vector<float
     }
 }
 
+void Node::display(int depth)
+{
+    if(depth == 0){
+        // root node
+        cout << path.back();
+    }
+    else{
+        for(int i=0; i<depth-1; i++){
+            cout << "....";
+        }
+        cout << "+-- " << path.back();
+    }
+    
+    map<int, Node>::iterator it;
+    if(it != children.end()){
+        cout << endl;
+    }
+    for(it=children.begin(); it!=children.end(); it++){
+        it->second.display(depth+1);        
+    }
+
+    if(children.size() == 0 || children.empty()){
+        // Leaf node
+        //cout << "Leaf node" << endl;
+        //cout << endl;
+    }
+    
+}
+
+void CombinationTrie::display()
+{
+    //vector
+    root.display(0);
+}
+
+// 노드의 현재 depth를 저장할 변수를 초기화한다. root node는 depth가 0이다.
+// 현재 탐색하는 depth를 저장할 boolean array를 선언하고 false로 초기화한다.
+// 만약 현재 노드가 루트이고 이 node가 depth가 0이면 노드의 데이터를 프린트한다.
+// 아니면, 1부터 노드의 현재 뎁스까지 루프를 반복하고, "|   "를 탐색하는 뎁스에 대해서 프린트한다. 
+// 비탐색하는 뎁스에 대해서는 "   "만 프린트한다.
+// 현재 노드의 값을 프린트하고 개행한다.
+// 현재 노드가 뎁스의 리프 노드이면 non-exploring으로 마크한다.
+// 
+
+
 int main()
 {
-    deque<int> indice {3, 0, 1, 2, 4};
-    cout << "INPUT {3, 0, 1, 2. 4}" << endl;
-
-    
+    int n = 5;
 
     vector<CombinationTrie> tries;
-    cout << "vector push1" << endl;
-    tries.emplace_back(indice);
+    for(int i=0; i<n; i++){
+        deque<int> indice;
+        indice.push_back(i);
 
-    cout << endl << endl;
-    deque<int> first{3, 0, 2, 4};
+        for(int j=0; j<n; j++){
+            if(i != j){
+                indice.push_back(j);
+                
+            }
+        }
 
-    vector<vector<float>> result;
-    cout << "FIND {3, 0, 2, 4}" << endl;
-    tries[0].search(first, result);
-
-    cout << "Print result feature "<< result.size() << endl;
-    for(auto&& fele : result){
-        for(auto&& ele : fele){
+        cout <<"@ Generate combination tree: " << endl;
+        for(auto&& ele : indice){
             cout << ele << " ";
         }
         cout << endl;
+
+        tries.emplace_back(indice);
     }
 
-    deque<int> second{3,0,2,5};
-    cout << " INPUT {3,0,2,5}" << endl;
-    tries.emplace_back(second);
-    cout << "program close" << endl;
+    cout <<" Num of Combination trie: " << tries.size() << endl;
 
-    
+    for(int i=0; i<n; i++){
+        cout << "\n@@ Print node " << i << endl;
+        tries[i].display();
+    }
+
 }
