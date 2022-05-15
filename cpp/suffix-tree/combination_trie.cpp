@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "combination_trie.hpp"
 
 using namespace std;
@@ -21,20 +22,20 @@ void Node::insertCombination_(std::deque<int>& comb, int index, int depth, std::
     
     path.push_back(comb[index]);
 
-    cout << "\nInput children size="<< nc << ", this index=" << index <<" pathsize=" << path.size() << endl;
+    //cout << "\nInput children size="<< nc << ", this index=" << index <<" pathsize=" << path.size() << endl;
     
     if(n-index > 1){
         for(int i=index+1; i<n; i++){ //{0 1 3 4}, i=1,2,3,4
 
             if(children.find(comb[i])==children.end()){
-                cout << "Create " << comb[index] << "'s children[" << comb[i] <<"]" << endl;
+                //cout << "Create " << comb[index] << "'s children[" << comb[i] <<"]" << endl;
                 children.insert({comb[i], Node()});
                 
-                cout <<"Insert {";
-                for(int j=i; j<n; j++){
-                    cout << comb[j] <<" ";
-                }
-                cout << "} to children[" << comb[i] << "]" << endl;
+                //cout <<"Insert {";
+                // for(int j=i; j<n; j++){
+                //     cout << comb[j] <<" ";
+                // }
+                // cout << "} to children[" << comb[i] << "]" << endl;
                 
                 children[comb[i]].insertCombination_(comb, i, depth+1, path);
             }
@@ -61,14 +62,14 @@ void Node::insertCombination_(std::deque<int>& comb, int index, int depth, std::
 std::list<int> Node::search(std::deque<int>& pat, std::vector<std::vector<float>>& features_)
 {
     // if all index of pattern have been processed,
-    cout << "Search {";
-    for(auto&& ele : pat){
-        cout << ele << " ";
-    }
-    cout <<"} " << endl;
+    // cout << "Search {";
+    // for(auto&& ele : pat){
+    //     cout << ele << " ";
+    // }
+    // cout <<"} " << endl;
 
     if(pat.size() == 0){
-        cout << "pattern size is zero" << endl;
+        //cout << "pattern size is zero" << endl;
         if(!features.empty())
         for(int i=0; i<2; i++){
             features_.push_back(features[i]);
@@ -76,10 +77,10 @@ std::list<int> Node::search(std::deque<int>& pat, std::vector<std::vector<float>
         return path;
     }
 
-    cout <<"this node's pathsize= " << path.size() << endl;
+    //cout <<"this node's pathsize= " << path.size() << endl;
     if(children.find(pat[0]) != children.end()){
         deque<int> sub{pat.begin()+1, pat.begin()+pat.size()};
-        cout << "Enter to children[" << pat[0] << "]" << endl;
+        //cout << "Enter to children[" << pat[0] << "]" << endl;
         return (children[pat[0]].search(sub, features_));
     }
 
@@ -133,6 +134,7 @@ void Node::display(int depth)
         // Leaf node
         //cout << "Leaf node" << endl;
         //cout << endl;
+        
     }
     
 }
@@ -142,15 +144,6 @@ void CombinationTrie::display()
     //vector
     root.display(0);
 }
-
-// 노드의 현재 depth를 저장할 변수를 초기화한다. root node는 depth가 0이다.
-// 현재 탐색하는 depth를 저장할 boolean array를 선언하고 false로 초기화한다.
-// 만약 현재 노드가 루트이고 이 node가 depth가 0이면 노드의 데이터를 프린트한다.
-// 아니면, 1부터 노드의 현재 뎁스까지 루프를 반복하고, "|   "를 탐색하는 뎁스에 대해서 프린트한다. 
-// 비탐색하는 뎁스에 대해서는 "   "만 프린트한다.
-// 현재 노드의 값을 프린트하고 개행한다.
-// 현재 노드가 뎁스의 리프 노드이면 non-exploring으로 마크한다.
-// 
 
 
 int main()
@@ -180,9 +173,40 @@ int main()
 
     cout <<" Num of Combination trie: " << tries.size() << endl;
 
-    for(int i=0; i<n; i++){
-        cout << "\n@@ Print node " << i << endl;
-        tries[i].display();
+    // for(int i=0; i<n; i++){
+    //     cout << "\n@@ Print node " << i << endl;
+    //     tries[i].display();
+    // }
+
+
+    cout << "@@ Usage for search" << endl;
+
+    deque<int>search1 ={3, 0, 2, 4, 1};
+
+    // Sort
+    sort(search1.begin()+1, search1.end());
+    for(int i=0; i<search1.size(); i++){
+        cout << search1[i] << " ";
     }
+    cout << endl;
+
+    int base = search1.front();
+    vector<vector<float>> result1;
+
+    // Search
+    tries[base].search(search1, result1);
+
+    cout << "Result: ";
+    for(auto&& rows: result1){
+        for(auto&& cols : rows){
+            cout << cols << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+
+
+
+    
 
 }
