@@ -9,9 +9,11 @@ static int cnt = 0;
  * @param comb 마커번호 조합
  * @param index comb의 가장 처음 번호의 순서
  */
+
+#define MIN_DEPTH 4
 void Node::insertCombination_(std::deque<int>& comb, int index, int depth, std::list<int> path_)
 {
-    // {2 0 1 3 4}
+    // {0 1 2 3 4}
     int n = comb.size(); // n=5
     int nc = n - index - 1;
 
@@ -22,26 +24,26 @@ void Node::insertCombination_(std::deque<int>& comb, int index, int depth, std::
     
     path.push_back(comb[index]);
 
-    //cout << "\nInput children size="<< nc << ", this index=" << index <<" pathsize=" << path.size() << endl;
+    cout << "\nInput children size="<< nc << ", this index=" << index <<" pathsize=" << path.size() << endl;
     
     if(n-index > 1){
         for(int i=index+1; i<n; i++){ //{0 1 3 4}, i=1,2,3,4
 
             if(children.find(comb[i])==children.end()){
-                //cout << "Create " << comb[index] << "'s children[" << comb[i] <<"]" << endl;
+                cout << "Create " << comb[index] << "'s children[" << comb[i] <<"]" << endl;
                 children.insert({comb[i], Node()});
                 
-                //cout <<"Insert {";
-                // for(int j=i; j<n; j++){
-                //     cout << comb[j] <<" ";
-                // }
-                // cout << "} to children[" << comb[i] << "]" << endl;
+                cout <<"Insert {";
+                for(int j=i; j<n; j++){
+                    cout << comb[j] <<" ";
+                }
+                cout << "} to children[" << comb[i] << "]" << endl;
                 
                 children[comb[i]].insertCombination_(comb, i, depth+1, path);
             }
         }
     }
-    else{
+    if(path.size()>=MIN_DEPTH){
         // leaf node
         cout <<"    Leaf node " << comb[index] <<", depth="<< depth;
         // path 출력
@@ -51,9 +53,15 @@ void Node::insertCombination_(std::deque<int>& comb, int index, int depth, std::
         }
         cout <<"}" << endl;
 
-        features.resize(2);
-        features[0].push_back(cnt++);
-        features[1].push_back(cnt++);
+        //features.resize(2);
+        vector<float> f1;
+        vector<float> f2;
+        for(int i=0; i<path.size(); i++){
+            f1.push_back(cnt++);
+            f2.push_back(cnt++);
+        }
+        features.push_back(f1);
+        features.push_back(f2);
         
         cout << "    features={" << features[0].front() <<" " <<features[1].front() << "}" << endl;
     }
@@ -181,7 +189,8 @@ int main()
 
     cout << "@@ Usage for search" << endl;
 
-    deque<int>search1 ={3, 0, 2, 4, 1};
+    //deque<int>search1 ={3, 0, 2, 4, 1};
+    deque<int> search1 = {0, 1, 3, 2};
 
     // Sort
     sort(search1.begin()+1, search1.end());
@@ -191,12 +200,16 @@ int main()
     cout << endl;
 
     int base = search1.front();
+
+    cout << "Print " << base << " trie" << endl;
+    tries[base].display();
+
     vector<vector<float>> result1;
 
     // Search
     tries[base].search(search1, result1);
 
-    cout << "Result: ";
+    cout << "Result1: ";
     for(auto&& rows: result1){
         for(auto&& cols : rows){
             cout << cols << " ";
@@ -204,6 +217,21 @@ int main()
         cout << endl;
     }
     cout << endl;
+
+    deque<int> search2 = {1, 0, 2, 4};
+    int base2 = search2.front();
+    vector<vector<float>> result2;
+    tries[base2].search(search2, result2);
+    cout << "Result2: ";
+    for(auto&& rows: result2){
+        for(auto&& cols: rows){
+            cout << cols << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+
+
 
 
 
