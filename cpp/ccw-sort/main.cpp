@@ -5,11 +5,19 @@
 #include <random>
 #include <algorithm>
 #include <chrono>
+#include <utility>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
-
-#define MIN_DEPTH 3
+#define MIN_DEPTH 4
 
 using namespace std;
+using namespace cv;
+
+
+ostream& operator<<(ostream& os, const pair<int, Point2f> pair){
+	os << "[" << pair.first << "]=" << pair.second;
+}
 
 template <typename S>
 ostream& operator<<(ostream& os, const vector<S>& vector){
@@ -20,6 +28,7 @@ ostream& operator<<(ostream& os, const vector<S>& vector){
 	}
 	return os;
 }
+
 
 struct Pos{
 	int x;
@@ -172,71 +181,151 @@ void GetPermList(){
 #define PERM_TEST
 #ifdef PERM_TEST
 
-bool is_promising(){
-
+bool ccw(cv::Point2f& p1, cv::Point2f& p2, cv::Point2f& p3){
+	int cross_product = (p2.x - p1.x)*(p3.y-p1.y) - (p3.x-p1.x)*(p2.y-p1.y);
+	if(cross_product > 0){
+		// ccw
+		return true;
+	} else if(cross_product < 0){
+		// clockwise
+		return false;
+	} else{
+		return true;
+	}
 }
 
-void perms(vector<int>& indice_src_, queue<int>& remains_){
+bool is_ccw(vector<Point2f>& positions_, int y_max){
 	
-	if(is_promising()){
-		// indice_src_ 에 요소 하나를 더 추가한다.
+	// get cpt
+	Point2f cpt;
+	float rad;
+	minEnclosingCircle(positions_, cpt, rad);
+	
+	// reflection
+//	cpt.y = (float)y_max - cpt.y;
+	
+	for(int i=0; i<positions_.size(); i++){
 		
-	} else{
-		
-		// 탈출조건을 만족하는지.
-		if(indice_src_.size() >= MIN_DEPTH){
-		
+		Point2f p2;
+		Point2f p3;
+		if(i == positions_.size()-1){
+			p2 = positions_[i];
+			p3 = positions_[0];
+		} else{
+			p2 = positions_[i];
+			p3 = positions_[i+1];
 		}
 		
-		// Back!
+//		p2.y = (float)y_max - p2.y;
+//		p3.y = (float)y_max - p3.y;
+		if(!ccw(cpt, p2, p3)){
+			return false;
+		}
+	}
+	return true;
+	
+	
+	
+}
+void perms(vector<pair<int,Point2f>>& positions_, vector<int>& path_, int depth, vector<vector<int>>& path_res_){
+	
+	// ccw 판단하기 위한 최소 조건
+	if(path_.size() >= 3){
 		
-		// visit 표시
+		// 좌표 인덱싱
+		vector<Point2f> pos_selected;
+		float y_max = -1;
+		for(auto& i : path_){
+			pos_selected.push_back(positions_[i].second);
+			if(y_max < positions_[i].second.y){
+				y_max = positions_[i].second.y;
+			}
+		}
+		
+		// 유망한지 판단
+		if(is_ccw(pos_selected, y_max)){
+			cout << "Promising : " << endl << pos_selected << endl;
+			if(depth >= MIN_DEPTH){
+				// 결과 저장
+				path_res_.push_back(path_);
+			}
+		} else{
+			cout << "Not Promising: " << endl << pos_selected << endl;
+			
+		}
+		
+	}
+	
+	for(int i=0; i<positions_.size(); i++){
+		// 현재 path에 없으면
+		if(find(path_.begin(), path_.end(), i) == path_.end()){
+			// new instance 생성
+			vector<int> path_clone;
+			copy(path_.begin(), path_.end(), back_inserter(path_clone));
+			path_clone.push_back(i);
+			perms(positions_, path_clone, depth+1, path_res_);
+		}
 	}
 	
 }
+
+void perms(vector<int>& indice, vector<int>& path_, int depth, vector<vector<int>>& path_res_){
+	
+	if(depth >= MIN_DEPTH){
+		// 결과 저장
+		path_res_.push_back(path_);
+	}
+	
+	for(int i=0; i<indice.size(); i++){
+		// 현재 path에 없으면
+		if(find(path_.begin(), path_.end(), i) == path_.end()){
+			// new instance 생성
+			vector<int> path_clone;
+			copy(path_.begin(), path_.end(), back_inserter(path_clone));
+			path_clone.push_back(i);
+			perms(indice, path_clone, depth+1, path_res_);
+		}
+	}
+}
+
 int main(){
 	// in : (u, v) 좌표
 	// out : ccw ordered permutation list
 	
-//	vector<Pos> positions;
-//	positions.emplace_back(0, 10);
-//	positions.emplace_back(0, 10);
-//	positions.emplace_back(0, 10);
-//	positions.emplace_back(0, 10);
-
-//	map<int, Pos>
+	int n = 5;
+	vector<pair<int, Point2f>> positions;
+	positions.push_back(make_pair(0, Point2f(10.f,13.f)));
+	positions.push_back(make_pair(1, Point2f(12,9)));
+	positions.push_back(make_pair(2, Point2f(14,15)));
+	positions.push_back(make_pair(3, Point2f(16,5)));
+	positions.push_back(make_pair(4, Point2f(19,7)));
 	
-	int n = 4;
-	vector<int> indice_;
+	vector<int> indice;
+	vector<vector<int>> indice_res;
 	
 	for(int i=0; i<n; i++){
-		indice_.push_back(i);
+		indice.push_back(i);
 	}
 	
-	// 초기 2개 뽑기
+	auto start_t = chrono::high_resolution_clock::now();
+	// 첫번째꺼는 담아야 함.
 	for(int i=0; i<n; i++){
-		for(int j=0; j<n; j++){
-			if(i != j){
-				
-				vector<int> indice_src = {i, j};
-				cout << "indice: " << indice_src << endl;
-				
-				queue<int> indice_remain;
-				cout << "indice_remain: ";
-				for(int k=0; k<n; k++){
-					if(k!=i  && k!=j){
-						indice_remain.push(k);
-						cout << k << " ";
-					}
-				}
-				cout << endl;
-				
-				perms();
-				
-			}
-			
-		}
+		vector<int> path;
+		path.push_back(i);
+		perms(positions, path, 1, indice_res);
+//		perms(indice, path, 1, indice_res);
 	}
+	
+	
+	auto end_t = chrono::high_resolution_clock::now();
+	auto duration = end_t - start_t;
+	cout << "ccw ordered list gen End!! (" << chrono::duration<double, std::micro>{duration}.count() << " us) ++" << endl << endl << endl;
+	
+	cout << "Print Result" << endl;
+	for(auto& indice_it : indice_res){
+		cout << indice_it << endl;
+	}
+	cout << indice_res.size() << endl;
 	
 }
 #endif
